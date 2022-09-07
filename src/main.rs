@@ -1,9 +1,12 @@
-use hyper::service::{make_service_fn, service_fn};
-use hyper::{Body, Method, Request, Response, Server, StatusCode};
+use hyper::server::conn::Http;
+use hyper::service::service_fn;
+use hyper::{Body, Method, Request, Response, StatusCode};
 use std::convert::Infallible;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::net::SocketAddr;
+use tokio::join;
+use tokio::net::TcpListener;
 mod utils;
 
 #[macro_use]
@@ -16,19 +19,18 @@ lazy_static! {
     };
 }
 
-
-async fn hello_world(req: Request<Body>) -> Result<Response<Body>, Infallible> {
-    let mut _paths : Vec<(&str,Method,bool)> = Vec::new();
+async fn index1(req: Request<Body>) -> Result<Response<Body>, Infallible> {
+    let mut _paths: Vec<(&str, Method, bool)> = Vec::new();
     _paths = PATHS.to_vec();
 
-    for path in _paths{
+    for path in _paths {
         if req.uri().path() == path.0 && req.method() == path.1 {
-            return Ok(Response::new("Hello world!".into()))
-        }else if req.uri().path() == path.0 && req.method() != path.1{
+            return Ok(Response::new("Hello world!".into()));
+        } else if req.uri().path() == path.0 && req.method() != path.1 {
             return Ok(Response::builder()
-            .status(StatusCode::NOT_ACCEPTABLE)
-            .body("Method Is Not Acceptable!".into())
-            .unwrap())
+                .status(StatusCode::NOT_ACCEPTABLE)
+                .body("Method Is Not Acceptable!".into())
+                .unwrap());
         }
     }
     Ok(Response::builder()
@@ -37,16 +39,22 @@ async fn hello_world(req: Request<Body>) -> Result<Response<Body>, Infallible> {
         .unwrap())
 }
 
-fn read_path_config(list : &mut Vec<(&'static str, Method, bool)>) -> Vec<(&'static str, Method, bool)> {
+async fn index2(_: Request<Body>) -> Result<Response<Body>, Infallible> {
+    Ok(Response::new("Admin server".into()))
+}
+
+fn read_path_config(
+    list: &mut Vec<(&'static str, Method, bool)>,
+) -> Vec<(&'static str, Method, bool)> {
     let file = File::open("./routes.conf").unwrap();
     let reader = BufReader::new(file);
 
     for line in reader.lines() {
         let ln = Box::leak(Box::new(line.unwrap()));
-        let values : Vec<&'static str> = ln.split_whitespace().collect();
+        let values: Vec<&'static str> = ln.split_whitespace().collect();
         let path = values[0];
         let method = Method::from_bytes(values[1].as_bytes()).unwrap();
-        list.push((path,method,false))
+        list.push((path, method, false))
     }
     list.to_vec()
 }
@@ -55,22 +63,41 @@ fn read_path_config(list : &mut Vec<(&'static str, Method, bool)>) -> Vec<(&'sta
 async fn main() {
     // We'll bind to 127.0.0.1:3000
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    
-    // unsafe{
-    //     PATHS.push(("/",Method::GET,false));
-    //     PATHS.push(("/path",Method::GET,false));
-    // }
-    // A `Service` is needed for every connection, so this
-    // creates one from our `hello_world` function.
-    let make_svc = make_service_fn(|_conn| async {
-        // service_fn converts our function into a `Service`
-        Ok::<_, Infallible>(service_fn(hello_world))
-    });
+    let admin_addr = SocketAddr::from(([127, 0, 0, 1], 3001));
 
-    let server = Server::bind(&addr).serve(make_svc);
+    let api_server = async move {
+        let listener = TcpListener::bind(addr).await.unwrap();
+        loop {
+            let (stream, _) = listener.accept().await.unwrap();
 
-    // Run this server for... forever!
-    if let Err(e) = server.await {
-        eprintln!("server error: {}", e);
-    }
+            tokio::task::spawn(async move {
+                if let Err(err) = Http::new()
+                    .serve_connection(stream, service_fn(index1))
+                    .await
+                {
+                    println!("Error Serving connection: {:?}", err);
+                }
+            });
+        }
+    };
+
+    let admin_server = async move {
+        let listener = TcpListener::bind(admin_addr).await.unwrap();
+        loop {
+            let (stream, _) = listener.accept().await.unwrap();
+
+            tokio::task::spawn(async move {
+                if let Err(err) = Http::new()
+                    .serve_connection(stream, service_fn(index2))
+                    .await
+                {
+                    println!("Error serving connection: {:?}", err);
+                }
+            });
+        }
+    };
+
+    println!("Listening on http://{} and http://{}", addr, admin_addr);
+
+    let _ret = join!(api_server, admin_server);
 }
