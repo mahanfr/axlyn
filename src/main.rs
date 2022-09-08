@@ -68,9 +68,16 @@ fn read_path_config(
 
 #[tokio::main]
 async fn main() {
-    // We'll bind to 127.0.0.1:3000
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    let admin_addr = SocketAddr::from(([127, 0, 0, 1], 3001));
+    let addr = SocketAddr::from(
+        format!("{}:{}", CONFIG.server_addr, CONFIG.server_port)
+            .parse::<SocketAddr>()
+            .unwrap(),
+    );
+    let admin_addr = SocketAddr::from(
+        format!("{}:{}", CONFIG.admin_addr, CONFIG.admin_port)
+            .parse::<SocketAddr>()
+            .unwrap(),
+    );
 
     let api_server = async move {
         let listener = TcpListener::bind(addr).await.unwrap();
