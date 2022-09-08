@@ -1,3 +1,4 @@
+use colored::Colorize;
 use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode};
@@ -7,10 +8,12 @@ use std::io::{BufRead, BufReader};
 use std::net::SocketAddr;
 use tokio::join;
 use tokio::net::TcpListener;
-mod utils;
 
 #[macro_use]
 extern crate lazy_static;
+
+// TODO: check this line before publishing 
+const DEV : bool = true;
 
 lazy_static! {
     static ref PATHS: Vec<(&'static str, Method, bool)> = {
@@ -97,7 +100,11 @@ async fn main() {
         }
     };
 
-    println!("Listening on http://{} and http://{}", addr, admin_addr);
+    if DEV == true{
+        println!("{} Application is in development stage"," Warning ".on_yellow().bold());
+    }
+    println!("{} Listening on http://{} and http://{}"," info ".on_bright_cyan().bold(), addr, admin_addr);
 
     let _ret = join!(api_server, admin_server);
+    
 }
