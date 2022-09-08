@@ -8,6 +8,6 @@ edition = "2021"
 [dependencies]
 lazy_static = "1.4.0"
 colored = "2"
-config = "0.13.1"
+rust-ini = "0.18"
 hyper = { version = "0.14", features = ["full"] }
 tokio = { version = "1", features = ["full"] }

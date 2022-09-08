@@ -3,23 +3,27 @@ use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode};
 use std::convert::Infallible;
-use std::fs::File;
+use std::fs::{File};
 use std::io::{BufRead, BufReader};
 use std::net::SocketAddr;
 use tokio::join;
 use tokio::net::TcpListener;
 
+mod utils;
+
 #[macro_use]
 extern crate lazy_static;
 
-// TODO: check this line before publishing 
-const DEV : bool = true;
+// TODO: check this line before publishing
+const DEV: bool = true;
 
 lazy_static! {
     static ref PATHS: Vec<(&'static str, Method, bool)> = {
         let mut v = Vec::new();
         read_path_config(&mut v)
     };
+    #[derive(Debug)]
+    static ref CONFIG : utils::AppConfig = utils::get_app_config().unwrap();
 }
 
 async fn index1(req: Request<Body>) -> Result<Response<Body>, Infallible> {
@@ -100,11 +104,25 @@ async fn main() {
         }
     };
 
-    if DEV == true{
-        println!("{} Application is in development stage"," Warning ".on_yellow().bold());
+    if DEV == true {
+        println!(
+            "{} Application is in development stage",
+            " DEV-Warning ".on_yellow().bold()
+        );
     }
-    println!("{} Listening on http://{} and http://{}"," info ".on_bright_cyan().bold(), addr, admin_addr);
+    println!(
+        "{} Listening on http://{} and http://{}",
+        " Info ".on_bright_cyan().bold(),
+        addr,
+        admin_addr
+    );
+
+    if CONFIG.debug == true {
+        println!(
+            "{} Application is in development stage",
+            " Warning ".on_yellow().bold()
+        );
+    }
 
     let _ret = join!(api_server, admin_server);
-    
 }
