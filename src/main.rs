@@ -1,14 +1,14 @@
-use colored::Colorize;
 use hyper::server::conn::Http;
 use hyper::service::service_fn;
 use hyper::{Body, Method, Request, Response, StatusCode};
 use std::convert::Infallible;
-use std::fs::{File};
+use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::net::SocketAddr;
 use tokio::join;
 use tokio::net::TcpListener;
 
+mod logger;
 mod utils;
 
 #[macro_use]
@@ -104,24 +104,11 @@ async fn main() {
         }
     };
 
-    if DEV == true {
-        println!(
-            "{} Application is in development stage",
-            " DEV-Warning ".on_yellow().bold()
-        );
-    }
-    println!(
-        "{} Listening on http://{} and http://{}",
-        " Info ".on_bright_cyan().bold(),
-        addr,
-        admin_addr
-    );
+    logger::debug("Application is in development stage");
+    logger::info(format!("Listening on http://{} and http://{}", addr, admin_addr).as_str());
 
     if CONFIG.debug == true {
-        println!(
-            "{} Application is in development stage",
-            " Warning ".on_yellow().bold()
-        );
+        logger::warning("Application is in development stage");
     }
 
     let _ret = join!(api_server, admin_server);
