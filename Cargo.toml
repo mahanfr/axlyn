@@ -9,5 +9,6 @@ edition = "2021"
 lazy_static = "1.4.0"
 colored = "2"
 rust-ini = "0.18"
+http-body = "0.4.5"
 hyper = { version = "0.14", features = ["full"] }
 tokio = { version = "1", features = ["full"] }

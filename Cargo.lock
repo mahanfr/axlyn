@@ -35,6 +35,7 @@ name = "axlyn"
 version = "0.1.0"
 dependencies = [
  "colored",
+ "http-body",
  "hyper",
  "lazy_static",
  "rust-ini",
