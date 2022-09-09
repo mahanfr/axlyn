@@ -58,6 +58,10 @@ async fn index2(req: Request<Body>) -> Result<Response<Full<Bytes>>, Infallible>
         return Ok(
             get_file(format!("resources{}",req.uri().path()).as_str()).await.unwrap()
         )
+    }else if req.uri().path().starts_with("/fonts") && req.method() == Method::GET {
+        return Ok(
+            get_file(format!("resources/static{}",req.uri().path()).as_str()).await.unwrap()
+        )
     }else if req.uri().path() == "/favicon.ico" && req.method() == Method::GET {
         return Ok(
             get_file("resources/favicon.ico").await.unwrap()
