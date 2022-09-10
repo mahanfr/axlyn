@@ -9,11 +9,18 @@
 
 ![logo][logo-image]
 
+**Fast:fire:, modern:sunglasses:, and expandable:pencil: Rest API server application**
+
+[Getting Started](#)
+ **|** 
+[Docs](#)
+ **|**
+[issues](#)
 </div>
 
-# Axlyn
-Fast:fire:, modern:sunglasses:, and expandable:pencil: Rest API server application
+***
 
+## About Project
 The Plan is to create a plug and play api server that dynamically generates end-points based on
 available data and can be configured using wasm modules or a blueprint (Visual Programming).
 Creating Database schema, evaluating request, customizing response and different additional capabilities 
@@ -49,4 +56,5 @@ Project Link: [https://github.com/mahanfarzaneh2000/axlyn](https://github.com/ma
 [contributors-shiled]: https://img.shields.io/github/contributors/mahanfarzaneh2000/axlyn
 [last-commit-shiled]: https://img.shields.io/github/last-commit/mahanfarzaneh2000/axlyn
 
-[logo-image]: https://i.postimg.cc/ry07NR1v/axlyn.png
+<!-- [logo-image]: https://i.postimg.cc/ry07NR1v/axlyn.png -->
+[logo-image]: https://i.postimg.cc/YCB5spv3/axlyin-banner-1.png
